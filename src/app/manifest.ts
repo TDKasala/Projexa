@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Projexa",
     description:
       "Plateforme de gestion de projets de construction : planification, suivi financier, personnel, matériaux et facturation.",
-    start_url: "/",
+    start_url: "/tableau-de-bord",
     display: "standalone",
     background_color: "#0b1220",
     theme_color: "#0b1220",

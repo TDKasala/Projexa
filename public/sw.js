@@ -1,5 +1,5 @@
-const CACHE_NAME = "projexa-shell-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/icon.svg", "/logo.svg"];
+const CACHE_NAME = "projexa-shell-v2";
+const APP_SHELL = ["/", "/offline.html", "/manifest.webmanifest", "/icon.svg", "/logo.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -33,7 +33,9 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(() => caches.match("/") || caches.match(request))
+      fetch(request).catch(() =>
+        caches.match(request).then((cached) => cached || caches.match("/offline.html"))
+      )
     );
     return;
   }
@@ -43,13 +45,13 @@ self.addEventListener("fetch", (event) => {
       if (cached) return cached;
       return fetch(request)
         .then((response) => {
-          if (response.ok) {
+          if (response.ok && response.type === "basic") {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
           return response;
         })
-        .catch(() => cached);
+        .catch(() => caches.match("/offline.html"));
     })
   );
 });

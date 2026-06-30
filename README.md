@@ -2,18 +2,32 @@
 
 **Planifier. Exécuter. Contrôler.**
 
-Projexa est une plateforme de gestion de projets de construction : projets,
-personnel, matériaux, achats, planning, finances, avancement, documents et
-facturation, réunis dans un seul outil — en français, installable comme
-application (PWA), construite avec Next.js 16 et Supabase.
+Projexa est une plateforme complète de gestion de projets de construction en français,
+installable comme PWA, construite avec Next.js 16 et Supabase.
+
+## Fonctionnalités
+
+| Module | Description |
+|---|---|
+| Tableau de bord | Vue d'ensemble — projets actifs, alertes de stock, commandes récentes |
+| Gestion des projets | CRUD complet avec statuts, avancement, budget, dates |
+| Gestion du personnel | Équipes, affectations aux chantiers, taux journaliers |
+| Gestion des matériaux | Stock, seuils d'alerte, valeur totale |
+| Achats & approvisionnements | Commandes d'achat + carnet de fournisseurs |
+| Planning (Gantt) | Chronologie CSS des projets, colorée par statut |
+| Suivi financier | Budget vs dépenses engagées par projet |
+| Suivi de l'avancement | Cartes visuelles de progression par chantier |
+| Gestion documentaire | Téléversement de fichiers vers Supabase Storage |
+| Facturation | Factures et devis avec RCCM / ID National / N° Impôt / TVA, impression A4 |
+| Synthèse générale | KPIs consolidés de toute l'activité |
 
 ## Stack technique
 
-- [Next.js 16](https://nextjs.org) (App Router, Turbopack, React 19)
-- [Supabase](https://supabase.com) (Postgres, Auth, Storage, Row Level Security)
-- Tailwind CSS v4
-- PWA : `app/manifest.ts` + service worker (`public/sw.js`)
-- Déploiement cible : [Vercel](https://vercel.com)
+- **Next.js 16** (App Router, Turbopack, React 19, Server Actions)
+- **Supabase** (Postgres + Auth + Storage + RLS multitenante par `company_id`)
+- **Tailwind CSS v4**
+- **PWA** : `app/manifest.ts` + `public/sw.js` (cache app shell + fallback hors ligne)
+- **Déploiement** : [Vercel](https://vercel.com)
 
 ## Démarrage local
 
@@ -32,17 +46,26 @@ npm install
    cp .env.local.example .env.local
    ```
 
-3. Renseignez les variables avec les valeurs de votre projet Supabase
-   (Project Settings → API) :
+3. Renseignez vos clés Supabase (Project Settings → API) :
 
-   ```bash
+   ```
    NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxx.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
    SUPABASE_SERVICE_ROLE_KEY=eyJ...
    ```
 
-4. Appliquez les migrations SQL du dossier `supabase/migrations` (une fois
-   disponibles) via le SQL Editor de Supabase ou la CLI Supabase.
+4. Appliquez les migrations dans le SQL Editor de Supabase ou via la CLI :
+
+   ```bash
+   # Avec la CLI Supabase (lier d'abord votre projet)
+   supabase db push
+   ```
+
+   Les migrations sont dans `supabase/migrations/` :
+   - `0001_companies_profiles.sql` — entreprises, profils, RLS, stockage logos
+   - `0002_core_modules.sql` — projets, personnel, matériaux, fournisseurs, commandes
+   - `0003_documents.sql` — table documents + bucket Storage privé
+   - `0004_facturation.sql` — factures, lignes de facture
 
 ### 3. Lancer le serveur de développement
 
@@ -55,34 +78,45 @@ Ouvrez [http://localhost:3000](http://localhost:3000).
 ## Déploiement sur Vercel
 
 1. Importez le dépôt dans [Vercel](https://vercel.com/new).
-2. Renseignez les mêmes variables d'environnement que `.env.local` dans les
-   paramètres du projet Vercel (Environment Variables).
-3. Déployez — Vercel détecte automatiquement Next.js.
+2. Ajoutez les variables d'environnement dans les paramètres du projet :
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+3. Déployez — Vercel détecte automatiquement Next.js et utilise `vercel.json`.
 
-Le manifeste PWA est généré automatiquement (`/manifest.webmanifest`) et le
-service worker (`/sw.js`) est enregistré côté client. Une fois déployée en
-HTTPS, l'application est installable depuis un navigateur compatible.
+En HTTPS, l'app est installable via le bouton d'installation du navigateur (Chrome, Safari, Edge).
 
 ## Structure du projet
 
 ```
 src/
   app/
-    (app)/            routes authentifiées (tableau de bord, projets, ...)
-    connexion/         page de connexion
-    inscription/        page de création de compte
-    manifest.ts         manifeste PWA
+    (app)/              routes authentifiées — 11 modules
+    connexion/           page de connexion
+    inscription/         page d'inscription
+    onboarding/          création d'entreprise (premier accès)
+    manifest.ts          manifeste PWA
+    layout.tsx           layout racine (Inter, SW, metadata)
   components/
-    layout/             sidebar, topbar, app shell, navigation
-    auth/                composants des pages d'authentification
-    pwa/                 enregistrement du service worker
+    layout/              sidebar, topbar, app shell, navigation
+    ui/                  Button, Badge, Table, FormField, StatCard, ...
+    projets/ personnel/  formulaires CRUD par module
+    materiaux/ achats/
+    facturation/         formulaire et impression A4 des factures
+    planning/            GanttChart CSS
+    documents/           formulaire de téléversement
   lib/
-    supabase/            clients Supabase (navigateur, serveur, proxy)
-    actions/              Server Actions (authentification, ...)
-  proxy.ts                rafraîchissement de session et garde d'accès
+    supabase/            clients (browser, server), types
+    actions/             Server Actions par module
+    dal.ts               couche d'accès aux données (requireProfileWithCompany)
+    labels.ts            étiquettes françaises pour les statuts
+    types.ts             types dérivés de la base de données
+  proxy.ts               rafraîchissement de session Next.js
 public/
-  sw.js                   service worker (cache de l'app shell)
-  manifest assets         icônes et logo
+  sw.js                  service worker
+  offline.html           page hors ligne PWA
+  icon.svg / logo.svg    icônes
+supabase/migrations/     4 migrations SQL
 ```
 
 ## Scripts
