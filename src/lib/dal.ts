@@ -29,9 +29,9 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   return data;
 });
 
-export async function requireProfileWithCompany(): Promise<Profile> {
+export async function requireProfileWithCompany(): Promise<Profile & { company_id: string }> {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/connexion");
   if (!profile.company_id) redirect("/onboarding");
-  return profile;
+  return profile as Profile & { company_id: string };
 }
