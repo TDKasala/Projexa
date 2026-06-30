@@ -11,15 +11,18 @@ const TONE_CLASS = {
 export function Badge({
   tone = "neutral",
   children,
+  className,
 }: {
   tone?: keyof typeof TONE_CLASS;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium",
-        TONE_CLASS[tone]
+        TONE_CLASS[tone],
+        className
       )}
     >
       {children}

@@ -5,6 +5,8 @@ export type UserRole = "owner" | "admin" | "manager" | "member";
 export type ProjectStatus = "planifie" | "en_cours" | "en_pause" | "termine" | "annule";
 export type PersonnelStatus = "actif" | "inactif";
 export type PurchaseOrderStatus = "brouillon" | "envoyee" | "recue" | "annulee";
+export type InvoiceType = "facture" | "devis";
+export type InvoiceStatus = "brouillon" | "envoyee" | "payee" | "annulee";
 
 export type Database = {
   public: {
@@ -339,6 +341,168 @@ export type Database = {
           },
         ];
       };
+      documents: {
+        Row: {
+          id: string;
+          company_id: string;
+          project_id: string | null;
+          name: string;
+          file_path: string;
+          file_size: number | null;
+          mime_type: string | null;
+          uploaded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_id: string;
+          project_id?: string | null;
+          name: string;
+          file_path: string;
+          file_size?: number | null;
+          mime_type?: string | null;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          company_id?: string;
+          project_id?: string | null;
+          name?: string;
+          file_path?: string;
+          file_size?: number | null;
+          mime_type?: string | null;
+          uploaded_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "documents_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      invoices: {
+        Row: {
+          id: string;
+          company_id: string;
+          project_id: string | null;
+          invoice_number: string | null;
+          type: InvoiceType;
+          status: InvoiceStatus;
+          client_name: string | null;
+          client_address: string | null;
+          client_phone: string | null;
+          client_email: string | null;
+          client_rccm: string | null;
+          issue_date: string;
+          due_date: string | null;
+          subtotal: number;
+          tax_rate: number;
+          tax_amount: number;
+          total: number;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_id: string;
+          project_id?: string | null;
+          invoice_number?: string | null;
+          type?: InvoiceType;
+          status?: InvoiceStatus;
+          client_name?: string | null;
+          client_address?: string | null;
+          client_phone?: string | null;
+          client_email?: string | null;
+          client_rccm?: string | null;
+          issue_date?: string;
+          due_date?: string | null;
+          subtotal?: number;
+          tax_rate?: number;
+          tax_amount?: number;
+          total?: number;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          company_id?: string;
+          project_id?: string | null;
+          invoice_number?: string | null;
+          type?: InvoiceType;
+          status?: InvoiceStatus;
+          client_name?: string | null;
+          client_address?: string | null;
+          client_phone?: string | null;
+          client_email?: string | null;
+          client_rccm?: string | null;
+          issue_date?: string;
+          due_date?: string | null;
+          subtotal?: number;
+          tax_rate?: number;
+          tax_amount?: number;
+          total?: number;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoices_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      invoice_items: {
+        Row: {
+          id: string;
+          invoice_id: string;
+          description: string;
+          quantity: number;
+          unit: string | null;
+          unit_price: number;
+          total: number;
+        };
+        Insert: {
+          id?: string;
+          invoice_id: string;
+          description: string;
+          quantity?: number;
+          unit?: string | null;
+          unit_price?: number;
+          total?: number;
+        };
+        Update: {
+          id?: string;
+          invoice_id?: string;
+          description?: string;
+          quantity?: number;
+          unit?: string | null;
+          unit_price?: number;
+          total?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -352,6 +516,8 @@ export type Database = {
       project_status: ProjectStatus;
       personnel_status: PersonnelStatus;
       purchase_order_status: PurchaseOrderStatus;
+      invoice_type: InvoiceType;
+      invoice_status: InvoiceStatus;
     };
   };
 };

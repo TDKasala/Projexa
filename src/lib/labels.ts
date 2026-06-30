@@ -1,4 +1,4 @@
-import type { PersonnelStatus, ProjectStatus, PurchaseOrderStatus } from "@/lib/types";
+import type { PersonnelStatus, ProjectStatus, PurchaseOrderStatus, InvoiceType, InvoiceStatus } from "@/lib/types";
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   planifie: "Planifié",
@@ -35,5 +35,27 @@ export const PURCHASE_ORDER_STATUS_TONE: Record<
   brouillon: "neutral",
   envoyee: "blue",
   recue: "success",
+  annulee: "danger",
+};
+
+export const INVOICE_TYPE_LABELS: Record<InvoiceType, string> = {
+  facture: "Facture",
+  devis: "Devis",
+};
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  brouillon: "Brouillon",
+  envoyee: "Envoyée",
+  payee: "Payée",
+  annulee: "Annulée",
+};
+
+export const INVOICE_STATUS_TONE: Record<
+  InvoiceStatus,
+  "neutral" | "blue" | "orange" | "success" | "danger"
+> = {
+  brouillon: "neutral",
+  envoyee: "blue",
+  payee: "success",
   annulee: "danger",
 };
