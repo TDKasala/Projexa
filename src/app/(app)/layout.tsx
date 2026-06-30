@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { requireProfileWithCompany } from "@/lib/dal";
 import { AppShell } from "@/components/layout/app-shell";
 
 export default async function AppLayout({
@@ -6,10 +6,7 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const profile = await requireProfileWithCompany();
 
-  return <AppShell userEmail={user?.email ?? null}>{children}</AppShell>;
+  return <AppShell userEmail={profile.email}>{children}</AppShell>;
 }
