@@ -55,44 +55,87 @@ export default async function DocumentsPage() {
           description="Téléversez vos plans, contrats et rapports pour les retrouver facilement."
         />
       ) : (
-        <Table>
-          <Thead>
-            <Th>Nom</Th>
-            <Th>Projet</Th>
-            <Th>Taille</Th>
-            <Th>Date</Th>
-            <Th className="text-right">Actions</Th>
-          </Thead>
-          <Tbody>
+        <>
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-3">
             {documents.map((doc) => {
               const { data: { publicUrl } } = supabase.storage.from("documents").getPublicUrl(doc.file_path);
               return (
-                <Tr key={doc.id}>
-                  <Td className="font-medium">{doc.name}</Td>
-                  <Td>{doc.projects?.name ?? "Général"}</Td>
-                  <Td>{formatFileSize(doc.file_size)}</Td>
-                  <Td>{new Date(doc.created_at).toLocaleDateString("fr-FR")}</Td>
-                  <Td className="text-right">
-                    <div className="flex justify-end gap-4">
-                      <a
-                        href={publicUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
-                      >
-                        <Download size={14} /> Télécharger
-                      </a>
-                      <DeleteButton
-                        action={deleteDocument.bind(null, doc.id, doc.file_path)}
-                        confirmMessage={`Supprimer le document "${doc.name}" ?`}
-                      />
+                <div key={doc.id} className="rounded-xl border border-border bg-card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-navy-950">{doc.name}</p>
+                      <p className="mt-0.5 text-sm text-muted">
+                        {doc.projects?.name ?? "Général"} · {formatFileSize(doc.file_size)}
+                      </p>
                     </div>
-                  </Td>
-                </Tr>
+                    <span className="shrink-0 text-xs text-muted">
+                      {new Date(doc.created_at).toLocaleDateString("fr-FR")}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-end gap-3 border-t border-border pt-3">
+                    <a
+                      href={publicUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
+                    >
+                      <Download size={14} /> Télécharger
+                    </a>
+                    <DeleteButton
+                      action={deleteDocument.bind(null, doc.id, doc.file_path)}
+                      confirmMessage={`Supprimer le document "${doc.name}" ?`}
+                    />
+                  </div>
+                </div>
               );
             })}
-          </Tbody>
-        </Table>
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block">
+            <Table>
+              <Thead>
+                <Th>Nom</Th>
+                <Th className="hidden md:table-cell">Projet</Th>
+                <Th>Taille</Th>
+                <Th className="hidden md:table-cell">Date</Th>
+                <Th className="text-right">Actions</Th>
+              </Thead>
+              <Tbody>
+                {documents.map((doc) => {
+                  const { data: { publicUrl } } = supabase.storage.from("documents").getPublicUrl(doc.file_path);
+                  return (
+                    <Tr key={doc.id}>
+                      <Td className="font-medium">{doc.name}</Td>
+                      <Td className="hidden md:table-cell">{doc.projects?.name ?? "Général"}</Td>
+                      <Td>{formatFileSize(doc.file_size)}</Td>
+                      <Td className="hidden md:table-cell">
+                        {new Date(doc.created_at).toLocaleDateString("fr-FR")}
+                      </Td>
+                      <Td className="text-right">
+                        <div className="flex justify-end gap-4">
+                          <a
+                            href={publicUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"
+                          >
+                            <Download size={14} /> Télécharger
+                          </a>
+                          <DeleteButton
+                            action={deleteDocument.bind(null, doc.id, doc.file_path)}
+                            confirmMessage={`Supprimer le document "${doc.name}" ?`}
+                          />
+                        </div>
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </Tbody>
+            </Table>
+          </div>
+        </>
       )}
     </div>
   );

@@ -10,7 +10,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full w-72 flex-col bg-navy-950 text-white">
+    <div className="flex h-full w-60 flex-col bg-navy-950 text-white xl:w-72">
       <div className="flex items-center gap-2 px-6 py-6">
         <Image src="/icon.svg" alt="Projexa" width={36} height={36} className="rounded-lg" />
         <div>

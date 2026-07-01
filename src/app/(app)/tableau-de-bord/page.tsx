@@ -94,7 +94,7 @@ export default async function TableauDeBordPage() {
               <Thead>
                 <Th>Projet</Th>
                 <Th>Statut</Th>
-                <Th>Avancement</Th>
+                <Th className="hidden sm:table-cell">Avancement</Th>
               </Thead>
               <Tbody>
                 {recentProjects.map((project) => (
@@ -109,9 +109,9 @@ export default async function TableauDeBordPage() {
                         {PROJECT_STATUS_LABELS[project.status]}
                       </Badge>
                     </Td>
-                    <Td>
+                    <Td className="hidden sm:table-cell">
                       <div className="flex items-center gap-2">
-                        <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
+                        <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-200">
                           <div
                             className="h-full rounded-full bg-blue-600"
                             style={{ width: `${project.progress_percent}%` }}
@@ -141,7 +141,7 @@ export default async function TableauDeBordPage() {
             <Table>
               <Thead>
                 <Th>Référence</Th>
-                <Th>Fournisseur</Th>
+                <Th className="hidden sm:table-cell">Fournisseur</Th>
                 <Th>Statut</Th>
                 <Th>Montant</Th>
               </Thead>
@@ -153,7 +153,7 @@ export default async function TableauDeBordPage() {
                         {order.reference ?? `CMD-${order.id.slice(0, 8).toUpperCase()}`}
                       </Link>
                     </Td>
-                    <Td>{order.suppliers?.name ?? "—"}</Td>
+                    <Td className="hidden sm:table-cell">{order.suppliers?.name ?? "—"}</Td>
                     <Td>
                       <Badge tone={PURCHASE_ORDER_STATUS_TONE[order.status]}>
                         {PURCHASE_ORDER_STATUS_LABELS[order.status]}

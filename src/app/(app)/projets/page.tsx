@@ -46,38 +46,55 @@ export default async function ProjetsPage() {
           }
         />
       ) : (
-        <Table>
-          <Thead>
-            <Th>Nom</Th>
-            <Th>Client</Th>
-            <Th>Statut</Th>
-            <Th>Avancement</Th>
-            <Th>Budget</Th>
-            <Th className="text-right">Actions</Th>
-          </Thead>
-          <Tbody>
+        <>
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-3">
             {projects.map((project) => (
-              <Tr key={project.id}>
-                <Td className="font-medium">
-                  <Link href={`/projets/${project.id}`} className="hover:underline">
-                    {project.name}
-                  </Link>
-                </Td>
-                <Td>{project.client_name ?? "—"}</Td>
-                <Td>
+              <div
+                key={project.id}
+                className="rounded-xl border border-border bg-card p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <Link
+                      href={`/projets/${project.id}`}
+                      className="block truncate font-semibold text-navy-950 hover:underline"
+                    >
+                      {project.name}
+                    </Link>
+                    {project.client_name && (
+                      <p className="mt-0.5 text-sm text-muted truncate">
+                        {project.client_name}
+                      </p>
+                    )}
+                  </div>
                   <Badge tone={PROJECT_STATUS_TONE[project.status]}>
                     {PROJECT_STATUS_LABELS[project.status]}
                   </Badge>
-                </Td>
-                <Td>{project.progress_percent}%</Td>
-                <Td>
-                  {project.budget != null
-                    ? `${Number(project.budget).toLocaleString("fr-FR")} FC`
-                    : "—"}
-                </Td>
-                <Td className="text-right">
-                  <div className="flex justify-end gap-4">
-                    <Link href={`/projets/${project.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                </div>
+                <div className="mt-3">
+                  <div className="mb-1 flex justify-between text-xs text-muted">
+                    <span>Avancement</span>
+                    <span>{project.progress_percent}%</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className="h-full rounded-full bg-blue-600"
+                      style={{ width: `${project.progress_percent}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+                  <span className="text-sm text-muted">
+                    {project.budget != null
+                      ? `${Number(project.budget).toLocaleString("fr-FR")} FC`
+                      : "Budget non défini"}
+                  </span>
+                  <div className="flex gap-3">
+                    <Link
+                      href={`/projets/${project.id}`}
+                      className="text-sm font-medium text-blue-600 hover:underline"
+                    >
                       Modifier
                     </Link>
                     <DeleteButton
@@ -85,11 +102,79 @@ export default async function ProjetsPage() {
                       confirmMessage={`Supprimer le projet "${project.name}" ?`}
                     />
                   </div>
-                </Td>
-              </Tr>
+                </div>
+              </div>
             ))}
-          </Tbody>
-        </Table>
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block">
+            <Table>
+              <Thead>
+                <Th>Nom</Th>
+                <Th className="hidden md:table-cell">Client</Th>
+                <Th>Statut</Th>
+                <Th>Avancement</Th>
+                <Th className="hidden lg:table-cell">Budget</Th>
+                <Th className="text-right">Actions</Th>
+              </Thead>
+              <Tbody>
+                {projects.map((project) => (
+                  <Tr key={project.id}>
+                    <Td className="font-medium">
+                      <Link
+                        href={`/projets/${project.id}`}
+                        className="hover:underline"
+                      >
+                        {project.name}
+                      </Link>
+                    </Td>
+                    <Td className="hidden md:table-cell">
+                      {project.client_name ?? "—"}
+                    </Td>
+                    <Td>
+                      <Badge tone={PROJECT_STATUS_TONE[project.status]}>
+                        {PROJECT_STATUS_LABELS[project.status]}
+                      </Badge>
+                    </Td>
+                    <Td>
+                      <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-200">
+                          <div
+                            className="h-full rounded-full bg-blue-600"
+                            style={{ width: `${project.progress_percent}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted">
+                          {project.progress_percent}%
+                        </span>
+                      </div>
+                    </Td>
+                    <Td className="hidden lg:table-cell">
+                      {project.budget != null
+                        ? `${Number(project.budget).toLocaleString("fr-FR")} FC`
+                        : "—"}
+                    </Td>
+                    <Td className="text-right">
+                      <div className="flex justify-end gap-4">
+                        <Link
+                          href={`/projets/${project.id}`}
+                          className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                          Modifier
+                        </Link>
+                        <DeleteButton
+                          action={deleteProject.bind(null, project.id)}
+                          confirmMessage={`Supprimer le projet "${project.name}" ?`}
+                        />
+                      </div>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </div>
+        </>
       )}
     </div>
   );
