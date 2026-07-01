@@ -24,6 +24,7 @@ export type Database = {
           email: string | null;
           logo_url: string | null;
           owner_id: string;
+          is_active: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -39,6 +40,7 @@ export type Database = {
           email?: string | null;
           logo_url?: string | null;
           owner_id: string;
+          is_active?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -54,6 +56,7 @@ export type Database = {
           email?: string | null;
           logo_url?: string | null;
           owner_id?: string;
+          is_active?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -66,6 +69,7 @@ export type Database = {
           full_name: string | null;
           email: string | null;
           role: UserRole;
+          is_superadmin: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -75,6 +79,7 @@ export type Database = {
           full_name?: string | null;
           email?: string | null;
           role?: UserRole;
+          is_superadmin?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -84,6 +89,7 @@ export type Database = {
           full_name?: string | null;
           email?: string | null;
           role?: UserRole;
+          is_superadmin?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -499,6 +505,76 @@ export type Database = {
             columns: ["invoice_id"];
             isOneToOne: false;
             referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      admin_audit_logs: {
+        Row: {
+          id: string;
+          actor_id: string | null;
+          action: string;
+          target_type: string | null;
+          target_id: string | null;
+          metadata: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_id?: string | null;
+          action: string;
+          target_type?: string | null;
+          target_id?: string | null;
+          metadata?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_id?: string | null;
+          action?: string;
+          target_type?: string | null;
+          target_id?: string | null;
+          metadata?: Record<string, unknown> | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "admin_audit_logs_actor_id_fkey";
+            columns: ["actor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      system_settings: {
+        Row: {
+          key: string;
+          value: string | null;
+          description: string | null;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          key: string;
+          value?: string | null;
+          description?: string | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          key?: string;
+          value?: string | null;
+          description?: string | null;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "system_settings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];

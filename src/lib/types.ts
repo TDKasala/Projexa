@@ -19,3 +19,5 @@ export type PurchaseOrder = Database["public"]["Tables"]["purchase_orders"]["Row
 export type Document = Database["public"]["Tables"]["documents"]["Row"];
 export type Invoice = Database["public"]["Tables"]["invoices"]["Row"];
 export type InvoiceItem = Database["public"]["Tables"]["invoice_items"]["Row"];
+export type AdminAuditLog = Database["public"]["Tables"]["admin_audit_logs"]["Row"];
+export type SystemSetting = Database["public"]["Tables"]["system_settings"]["Row"];
