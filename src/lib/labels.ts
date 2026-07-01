@@ -1,4 +1,4 @@
-import type { PersonnelStatus, ProjectStatus, PurchaseOrderStatus, InvoiceType, InvoiceStatus } from "@/lib/types";
+import type { PersonnelStatus, ProjectStatus, PurchaseOrderStatus, InvoiceType, InvoiceStatus, TaskStatus, TaskPriority, MovementType } from "@/lib/types";
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   planifie: "Planifié",
@@ -58,4 +58,46 @@ export const INVOICE_STATUS_TONE: Record<
   envoyee: "blue",
   payee: "success",
   annulee: "danger",
+};
+
+export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
+  a_faire: "À faire",
+  en_cours: "En cours",
+  en_revision: "En révision",
+  termine: "Terminé",
+  annule: "Annulé",
+};
+
+export const TASK_STATUS_TONE: Record<TaskStatus, "neutral" | "blue" | "orange" | "success" | "danger"> = {
+  a_faire: "neutral",
+  en_cours: "blue",
+  en_revision: "orange",
+  termine: "success",
+  annule: "danger",
+};
+
+export const TASK_PRIORITY_LABELS: Record<TaskPriority, string> = {
+  basse: "Basse",
+  normale: "Normale",
+  haute: "Haute",
+  urgente: "Urgente",
+};
+
+export const TASK_PRIORITY_TONE: Record<TaskPriority, "neutral" | "blue" | "orange" | "danger"> = {
+  basse: "neutral",
+  normale: "blue",
+  haute: "orange",
+  urgente: "danger",
+};
+
+export const MOVEMENT_TYPE_LABELS: Record<MovementType, string> = {
+  entree: "Entrée",
+  sortie: "Sortie",
+  ajustement: "Ajustement",
+};
+
+export const MOVEMENT_TYPE_TONE: Record<MovementType, "neutral" | "blue" | "success" | "danger"> = {
+  entree: "success",
+  sortie: "danger",
+  ajustement: "blue",
 };
