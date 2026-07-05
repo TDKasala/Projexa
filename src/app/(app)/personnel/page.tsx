@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Users, Plus } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -8,19 +9,38 @@ import { LinkButton } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/table";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { SearchBar } from "@/components/ui/search-bar";
 import { PERSONNEL_STATUS_LABELS } from "@/lib/labels";
 import { deletePersonnel } from "@/lib/actions/personnel";
 
 export const metadata = { title: "Gestion du personnel — Projexa" };
 
-export default async function PersonnelPage() {
+const PAGE_SIZE = 20;
+
+export default async function PersonnelPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const { q, page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10));
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   const profile = await requireProfileWithCompany();
   const supabase = await createClient();
-  const { data: personnel } = await supabase
+
+  let query = supabase
     .from("personnel")
-    .select("*, projects(name)")
+    .select("*, projects(name)", { count: "exact" })
     .eq("company_id", profile.company_id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (q?.trim()) query = query.ilike("full_name", `%${q.trim()}%`);
+
+  const { data: personnel, count } = await query;
 
   return (
     <div className="space-y-6">
@@ -34,15 +54,25 @@ export default async function PersonnelPage() {
         }
       />
 
+      <Suspense fallback={null}>
+        <SearchBar placeholder="Rechercher un membre…" />
+      </Suspense>
+
       {!personnel || personnel.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="Aucun membre du personnel"
-          description="Ajoutez vos employés et affectez-les à vos chantiers."
+          title={q ? "Aucun résultat" : "Aucun membre du personnel"}
+          description={
+            q
+              ? `Aucun résultat pour « ${q} ».`
+              : "Ajoutez vos employés et affectez-les à vos chantiers."
+          }
           action={
-            <LinkButton href="/personnel/nouveau">
-              <Plus size={16} /> Nouveau membre
-            </LinkButton>
+            !q ? (
+              <LinkButton href="/personnel/nouveau">
+                <Plus size={16} /> Nouveau membre
+              </LinkButton>
+            ) : undefined
           }
         />
       ) : (
@@ -69,9 +99,7 @@ export default async function PersonnelPage() {
                       )}
                     </p>
                   </div>
-                  <Badge
-                    tone={person.status === "actif" ? "success" : "neutral"}
-                  >
+                  <Badge tone={person.status === "actif" ? "success" : "neutral"}>
                     {PERSONNEL_STATUS_LABELS[person.status]}
                   </Badge>
                 </div>
@@ -113,23 +141,16 @@ export default async function PersonnelPage() {
                 {personnel.map((person) => (
                   <Tr key={person.id}>
                     <Td className="font-medium">
-                      <Link
-                        href={`/personnel/${person.id}`}
-                        className="hover:underline"
-                      >
+                      <Link href={`/personnel/${person.id}`} className="hover:underline">
                         {person.full_name}
                       </Link>
                     </Td>
-                    <Td className="hidden md:table-cell">
-                      {person.role ?? "—"}
-                    </Td>
+                    <Td className="hidden md:table-cell">{person.role ?? "—"}</Td>
                     <Td className="hidden lg:table-cell">
                       {person.projects?.name ?? "—"}
                     </Td>
                     <Td>
-                      <Badge
-                        tone={person.status === "actif" ? "success" : "neutral"}
-                      >
+                      <Badge tone={person.status === "actif" ? "success" : "neutral"}>
                         {PERSONNEL_STATUS_LABELS[person.status]}
                       </Badge>
                     </Td>
@@ -157,6 +178,13 @@ export default async function PersonnelPage() {
               </Tbody>
             </Table>
           </div>
+
+          <PaginationBar
+            page={page}
+            totalCount={count ?? 0}
+            pageSize={PAGE_SIZE}
+            baseParams={{ q: q ?? undefined }}
+          />
         </>
       )}
     </div>

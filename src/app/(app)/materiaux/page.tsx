@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Boxes, Plus, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -8,18 +9,37 @@ import { LinkButton } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/table";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { SearchBar } from "@/components/ui/search-bar";
 import { deleteMaterial } from "@/lib/actions/materials";
 
 export const metadata = { title: "Gestion des matériaux — Projexa" };
 
-export default async function MateriauxPage() {
+const PAGE_SIZE = 20;
+
+export default async function MateriauxPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const { q, page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10));
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   const profile = await requireProfileWithCompany();
   const supabase = await createClient();
-  const { data: materials } = await supabase
+
+  let query = supabase
     .from("materials")
-    .select("*, projects(name)")
+    .select("*, projects(name)", { count: "exact" })
     .eq("company_id", profile.company_id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (q?.trim()) query = query.ilike("name", `%${q.trim()}%`);
+
+  const { data: materials, count } = await query;
 
   return (
     <div className="space-y-6">
@@ -33,15 +53,25 @@ export default async function MateriauxPage() {
         }
       />
 
+      <Suspense fallback={null}>
+        <SearchBar placeholder="Rechercher un matériau…" />
+      </Suspense>
+
       {!materials || materials.length === 0 ? (
         <EmptyState
           icon={Boxes}
-          title="Aucun matériau enregistré"
-          description="Ajoutez vos matériaux pour suivre vos stocks et vos approvisionnements."
+          title={q ? "Aucun résultat" : "Aucun matériau enregistré"}
+          description={
+            q
+              ? `Aucun résultat pour « ${q} ».`
+              : "Ajoutez vos matériaux pour suivre vos stocks et vos approvisionnements."
+          }
           action={
-            <LinkButton href="/materiaux/nouveau">
-              <Plus size={16} /> Nouveau matériau
-            </LinkButton>
+            !q ? (
+              <LinkButton href="/materiaux/nouveau">
+                <Plus size={16} /> Nouveau matériau
+              </LinkButton>
+            ) : undefined
           }
         />
       ) : (
@@ -123,10 +153,7 @@ export default async function MateriauxPage() {
                   return (
                     <Tr key={material.id}>
                       <Td className="font-medium">
-                        <Link
-                          href={`/materiaux/${material.id}`}
-                          className="hover:underline"
-                        >
+                        <Link href={`/materiaux/${material.id}`} className="hover:underline">
                           {material.name}
                         </Link>
                       </Td>
@@ -170,6 +197,13 @@ export default async function MateriauxPage() {
               </Tbody>
             </Table>
           </div>
+
+          <PaginationBar
+            page={page}
+            totalCount={count ?? 0}
+            pageSize={PAGE_SIZE}
+            baseParams={{ q: q ?? undefined }}
+          />
         </>
       )}
     </div>

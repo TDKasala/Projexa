@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { FolderKanban, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfileWithCompany } from "@/lib/dal";
@@ -7,20 +8,39 @@ import { LinkButton } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/table";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { SearchBar } from "@/components/ui/search-bar";
 import { PROJECT_STATUS_LABELS, PROJECT_STATUS_TONE } from "@/lib/labels";
 import { deleteProject } from "@/lib/actions/projects";
 import Link from "next/link";
 
 export const metadata = { title: "Gestion des projets — Projexa" };
 
-export default async function ProjetsPage() {
+const PAGE_SIZE = 20;
+
+export default async function ProjetsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const { q, page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10));
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   const profile = await requireProfileWithCompany();
   const supabase = await createClient();
-  const { data: projects } = await supabase
+
+  let query = supabase
     .from("projects")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("company_id", profile.company_id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (q?.trim()) query = query.ilike("name", `%${q.trim()}%`);
+
+  const { data: projects, count } = await query;
 
   return (
     <div className="space-y-6">
@@ -34,15 +54,25 @@ export default async function ProjetsPage() {
         }
       />
 
+      <Suspense fallback={null}>
+        <SearchBar placeholder="Rechercher un projet…" />
+      </Suspense>
+
       {!projects || projects.length === 0 ? (
         <EmptyState
           icon={FolderKanban}
-          title="Aucun projet pour le moment"
-          description="Créez votre premier projet pour commencer à suivre vos chantiers."
+          title={q ? "Aucun projet trouvé" : "Aucun projet pour le moment"}
+          description={
+            q
+              ? `Aucun résultat pour « ${q} ».`
+              : "Créez votre premier projet pour commencer à suivre vos chantiers."
+          }
           action={
-            <LinkButton href="/projets/nouveau">
-              <Plus size={16} /> Nouveau projet
-            </LinkButton>
+            !q ? (
+              <LinkButton href="/projets/nouveau">
+                <Plus size={16} /> Nouveau projet
+              </LinkButton>
+            ) : undefined
           }
         />
       ) : (
@@ -174,6 +204,13 @@ export default async function ProjetsPage() {
               </Tbody>
             </Table>
           </div>
+
+          <PaginationBar
+            page={page}
+            totalCount={count ?? 0}
+            pageSize={PAGE_SIZE}
+            baseParams={{ q: q ?? undefined }}
+          />
         </>
       )}
     </div>

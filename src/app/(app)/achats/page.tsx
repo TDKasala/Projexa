@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ShoppingCart, Plus } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +9,8 @@ import { LinkButton } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DeleteButton } from "@/components/ui/delete-button";
 import { Table, Thead, Th, Tbody, Tr, Td } from "@/components/ui/table";
+import { PaginationBar } from "@/components/ui/pagination-bar";
+import { SearchBar } from "@/components/ui/search-bar";
 import {
   PURCHASE_ORDER_STATUS_LABELS,
   PURCHASE_ORDER_STATUS_TONE,
@@ -16,14 +19,31 @@ import { deletePurchaseOrder } from "@/lib/actions/purchase-orders";
 
 export const metadata = { title: "Achats & approvisionnements — Projexa" };
 
-export default async function AchatsPage() {
+const PAGE_SIZE = 20;
+
+export default async function AchatsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const { q, page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10));
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
   const profile = await requireProfileWithCompany();
   const supabase = await createClient();
-  const { data: orders } = await supabase
+
+  let query = supabase
     .from("purchase_orders")
-    .select("*, suppliers(name), projects(name)")
+    .select("*, suppliers(name), projects(name)", { count: "exact" })
     .eq("company_id", profile.company_id)
-    .order("order_date", { ascending: false });
+    .order("order_date", { ascending: false })
+    .range(from, to);
+
+  if (q?.trim()) query = query.ilike("reference", `%${q.trim()}%`);
+
+  const { data: orders, count } = await query;
 
   return (
     <div className="space-y-6">
@@ -42,15 +62,25 @@ export default async function AchatsPage() {
         }
       />
 
+      <Suspense fallback={null}>
+        <SearchBar placeholder="Rechercher une référence…" />
+      </Suspense>
+
       {!orders || orders.length === 0 ? (
         <EmptyState
           icon={ShoppingCart}
-          title="Aucune commande d'achat"
-          description="Créez vos premières commandes et suivez leur avancement."
+          title={q ? "Aucun résultat" : "Aucune commande d'achat"}
+          description={
+            q
+              ? `Aucun résultat pour « ${q} ».`
+              : "Créez vos premières commandes et suivez leur avancement."
+          }
           action={
-            <LinkButton href="/achats/nouveau">
-              <Plus size={16} /> Nouvelle commande
-            </LinkButton>
+            !q ? (
+              <LinkButton href="/achats/nouveau">
+                <Plus size={16} /> Nouvelle commande
+              </LinkButton>
+            ) : undefined
           }
         />
       ) : (
@@ -68,15 +98,12 @@ export default async function AchatsPage() {
                       href={`/achats/${order.id}`}
                       className="block truncate font-semibold text-navy-950 hover:underline"
                     >
-                      {order.reference ??
-                        `CMD-${order.id.slice(0, 8).toUpperCase()}`}
+                      {order.reference ?? `CMD-${order.id.slice(0, 8).toUpperCase()}`}
                     </Link>
                     <p className="mt-0.5 text-sm text-muted">
                       {order.suppliers?.name ?? "Fournisseur non défini"}
                       {order.projects?.name && (
-                        <span className="ml-1 text-xs">
-                          · {order.projects.name}
-                        </span>
+                        <span className="ml-1 text-xs">· {order.projects.name}</span>
                       )}
                     </p>
                   </div>
@@ -124,12 +151,8 @@ export default async function AchatsPage() {
                 {orders.map((order) => (
                   <Tr key={order.id}>
                     <Td className="font-medium">
-                      <Link
-                        href={`/achats/${order.id}`}
-                        className="hover:underline"
-                      >
-                        {order.reference ??
-                          `CMD-${order.id.slice(0, 8).toUpperCase()}`}
+                      <Link href={`/achats/${order.id}`} className="hover:underline">
+                        {order.reference ?? `CMD-${order.id.slice(0, 8).toUpperCase()}`}
                       </Link>
                     </Td>
                     <Td>{order.suppliers?.name ?? "—"}</Td>
@@ -144,9 +167,7 @@ export default async function AchatsPage() {
                         {PURCHASE_ORDER_STATUS_LABELS[order.status]}
                       </Badge>
                     </Td>
-                    <Td>
-                      {Number(order.total_amount).toLocaleString("fr-FR")} FC
-                    </Td>
+                    <Td>{Number(order.total_amount).toLocaleString("fr-FR")} FC</Td>
                     <Td className="text-right">
                       <div className="flex justify-end gap-4">
                         <Link
@@ -166,6 +187,13 @@ export default async function AchatsPage() {
               </Tbody>
             </Table>
           </div>
+
+          <PaginationBar
+            page={page}
+            totalCount={count ?? 0}
+            pageSize={PAGE_SIZE}
+            baseParams={{ q: q ?? undefined }}
+          />
         </>
       )}
     </div>

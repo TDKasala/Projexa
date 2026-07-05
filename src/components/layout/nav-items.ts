@@ -11,6 +11,7 @@ import {
   FileStack,
   Receipt,
   BarChart3,
+  Settings,
 } from "lucide-react";
 
 export type NavItem = {
@@ -31,4 +32,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Gestion documentaire", href: "/documents", icon: FileStack },
   { label: "Facturation & documents commerciaux", href: "/facturation", icon: Receipt },
   { label: "Synthèse générale", href: "/synthese", icon: BarChart3 },
+  { label: "Paramètres", href: "/parametres", icon: Settings },
 ];

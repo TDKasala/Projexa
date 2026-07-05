@@ -65,6 +65,12 @@ export default function ConnexionPage() {
         >
           {isPending ? "Connexion en cours..." : "Se connecter"}
         </button>
+
+        <div className="text-center">
+          <Link href="/mot-de-passe-oublie" className="text-sm text-muted hover:text-navy-950">
+            Mot de passe oublié ?
+          </Link>
+        </div>
       </form>
     </AuthCard>
   );
